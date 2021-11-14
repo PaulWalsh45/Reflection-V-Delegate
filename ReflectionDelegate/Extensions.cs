@@ -14,13 +14,13 @@ namespace ReflectionDelegate
         public delegate PropertyInfo[] RequestPropertyInfoDelegate(Type type);
         public delegate PropertyInfo RequestPropertyDelegate(Type type, string propertyName);
 
-        public static List<string> Compare<T>(this T x, T y, List<string> ignore = null)
+        public static List<string> Compare<T>(this T x, T y, int loop, List<string> ignore = null)
         {
             var diffs = new List<string>();
             var type = typeof(T);
 
-            // Loop to measure performance
-            for (int i = 0; i < 1000000; i++)
+            // Loop to measure performance,
+            for (int i = 0; i < loop; i++)
             {
                 foreach (var property in type.GetProperties())
                 {
@@ -49,7 +49,7 @@ namespace ReflectionDelegate
         }
         
 
-        public static List<string> CompareUsingDelegate<T>(this T x, T y, List<string> ignore = null)
+        public static List<string> CompareUsingDelegate<T>(this T x, T y, int loop, List<string> ignore = null)
         {
             var diffs = new List<string>();
             var type = typeof(T);
@@ -58,7 +58,7 @@ namespace ReflectionDelegate
             var props = propertyInfoDelegate(type);
 
             // Loop to measure performance
-            for (int i = 0; i < 1000000; i++)
+            for (int i = 0; i < loop; i++)
             {
                 foreach (var property in props)
                 {
