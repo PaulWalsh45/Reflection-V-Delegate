@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Dynamic;
 using NUnit.Framework;
 
 
@@ -172,6 +173,46 @@ namespace ReflectionDelegate.Tests
             Assert.AreEqual(expectedDiffs[0],differences[0]);
             Assert.AreEqual(expectedDiffs[1], differences[1]);
             Assert.AreEqual(expectedDiffs[2], differences[2]);
+        }
+
+        [Test]
+        public void TestUsingCompare_PropertiesContainObjects()
+        {
+            //Arrange
+            var object1 = new TestClass2()
+            {
+                FirstName = "Joe",
+                SubClass = new TestSubClass
+                {
+                    Prop1 = "prop1",
+                    Prop2 = "prop2",
+                    Prop3 = 3
+
+                },
+                LastName = "Bloggs"
+            
+            };
+            
+            var object2 = new TestClass2()
+            {
+                FirstName = "Mary",
+                SubClass = new TestSubClass
+                {
+                    Prop1 = "prop11",
+                    Prop2 = "prop12",
+                    Prop3 = 13
+                },
+                LastName = "Black"
+               
+            };
+
+            //Act
+            var differences = object1.CompareUsingDelegate1<TestClass2>(object2);
+
+
+            //Assert
+            Assert.AreEqual(5, differences.Count);
+            
         }
 
     }

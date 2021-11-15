@@ -14,6 +14,7 @@ namespace ReflectionDelegate
         public delegate PropertyInfo[] RequestPropertyInfoDelegate(Type type);
         public delegate PropertyInfo RequestPropertyDelegate(Type type, string propertyName);
 
+        
         public static List<string> Compare<T>(this T x, T y, int loop, List<string> ignore = null)
         {
             var diffs = new List<string>();
@@ -85,7 +86,65 @@ namespace ReflectionDelegate
 
         }
 
-        public static PropertyInfo[] GetProperties(Type type)
+        public static List<string> CompareUsingDelegate1<T>(this T x, T y, List<string> ignore = null)
+        {
+            var diffs = new List<string>();
+            var type = typeof(T);
+            var propertyDelegate = new RequestPropertyDelegate(GetProperty);
+            var propertyInfoDelegate = new RequestPropertyInfoDelegate(GetProperties);
+            var props = propertyInfoDelegate(type);
+
+            var dataObjects = new Dictionary<string, Type>();
+            dataObjects.Add("TestSubClass",typeof(TestSubClass));
+
+            
+                foreach (var property in props)
+                {
+                    var xValue = string.Empty;
+                    var yValue = string.Empty;
+
+                    var prop = propertyDelegate(typeof(T), property.Name);
+                    xValue = prop?.GetValue(x, null)?.ToString();
+                    yValue = prop?.GetValue(y, null)?.ToString();
+
+                    // this will check if any properties are class (i.e objects)
+                    if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+                    {
+
+                    var xChildValues = (TestSubClass)prop?.GetValue(x, null);
+                    var yChildValues = (TestSubClass)prop?.GetValue(y, null);
+
+                    //recursive call
+                    diffs.AddRange(xChildValues.CompareUsingDelegate1(yChildValues));
+
+                    //var childType = property.PropertyType;
+
+                    //var xChildValues = prop?.GetValue(x, null);
+                    //var yChildValues = prop?.GetValue(y, null);
+
+                    //var xChildObject = Convert.ChangeType(xChildValues, childType);
+                    //var yChildObject = Convert.ChangeType(yChildValues, childType);
+                    //diffs.AddRange(xChildObject.CompareUsingDelegate1(yChildObject));
+
+                    //var d = xChildValues.CompareUsingDelegate1(yChildValues);
+
+                }
+
+                    if (ignore == null || !ignore.Contains(property.Name))
+                    {
+                        if (xValue != yValue)
+                        {
+                            diffs.Add($"{type.Name} difference - '{property.Name} : {xValue}' != {property.Name} :'{yValue}'");
+                        }
+                    }
+
+                }
+            
+            return diffs;
+
+        }
+
+       public static PropertyInfo[] GetProperties(Type type)
         {
             return type.GetProperties();
         }
