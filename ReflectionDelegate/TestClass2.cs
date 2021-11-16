@@ -8,6 +8,7 @@ namespace ReflectionDelegate
     {
         public string FirstName { get; set; }
         public TestSubClass SubClass { get; set; }
+        public AnotherSubClass AnotherSubClass { get; set; }
         public string LastName { get; set; }
 
         //public List<TestSubClass> SubClassList { get; set; }

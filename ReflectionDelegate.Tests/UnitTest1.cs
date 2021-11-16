@@ -189,6 +189,12 @@ namespace ReflectionDelegate.Tests
                     Prop3 = 3
 
                 },
+                AnotherSubClass = new AnotherSubClass
+                {
+                    Prop11 = "prop11",
+                    Prop12 = "prop12",
+                    Prop13 = 13
+                },
                 LastName = "Bloggs"
             
             };
@@ -202,17 +208,84 @@ namespace ReflectionDelegate.Tests
                     Prop2 = "prop12",
                     Prop3 = 13
                 },
+                AnotherSubClass = new AnotherSubClass
+                {
+                    Prop11 = "prop111",
+                    Prop12 = "prop112",
+                    Prop13 = 113
+                },
                 LastName = "Black"
                
             };
 
             //Act
-            var differences = object1.CompareUsingDelegate1<TestClass2>(object2);
+            var differences = object1.CompareUsingDelegateSH(object2);
 
 
             //Assert
-            Assert.AreEqual(5, differences.Count);
+            Assert.AreEqual(8, differences.Count);
             
+        }
+
+        [Test]
+        public void TestUsingCompare_PropertiesContainListedObjects()
+        {
+            //Arrange
+            var object1 = new TestClass3()
+            {
+                FirstName = "Joe",
+                SubClassList = new List<TestSubClass>()
+                {
+                    new TestSubClass
+                    {
+                        Prop1 = "prop1",
+                        Prop2 = "prop2",
+                        Prop3 = 3
+                    },
+                    new TestSubClass
+                    {
+                        Prop1 = "prop11",
+                        Prop2 = "prop12",
+                        Prop3 = 13
+                    }
+                }
+             
+            };
+
+            var object2 = new TestClass3()
+            {
+                FirstName = "Mary",
+                SubClassList = new List<TestSubClass>()
+                {
+                    new TestSubClass
+                    {
+                        Prop1 = "prop1x",
+                        Prop2 = "prop12x",
+                        Prop3 = 33
+                    },
+                    new TestSubClass
+                    {
+                        Prop1 = "prop11x",
+                        Prop2 = "prop12x",
+                        Prop3 = 133
+                    }
+                }
+
+            };
+
+            //Act
+            //get object differences ignoring known properties of type List
+            var differences = object1.CompareUsingDelegateSH1(object2,new List<string>{"SubClassList"});
+
+            // iterate through the ignored properties above and call the compare for each
+            for (int i = 0; i < object1.SubClassList.Count; i++)
+            {
+                differences.AddRange(object1.SubClassList[1].CompareUsingDelegateSH1(object2.SubClassList[i]));
+            }
+            
+            //Assert
+            Assert.AreEqual(7, differences.Count);
+
         }
 
     }

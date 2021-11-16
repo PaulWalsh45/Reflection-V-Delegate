@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -86,6 +87,103 @@ namespace ReflectionDelegate
 
         }
 
+        /// <summary>
+        /// This can handle properties of type object, but NOT properties of type object lists
+        /// </summary>
+        /// <param name="x">first object to compare</param>
+        /// <param name="y">second object to compare</param>
+        /// <param name="ignore">the properties to ignore</param>
+        /// <returns>a list of strings </returns>
+        public static List<string> CompareUsingDelegateSH(this object x, object y, List<string> ignore = null)
+        {
+            var diffs = new List<string>();
+            var type = x.GetType();
+            var propertyDelegate = new RequestPropertyDelegate(GetProperty);
+            var propertyInfoDelegate = new RequestPropertyInfoDelegate(GetProperties);
+            var props = propertyInfoDelegate(type);
+
+           
+            foreach (var property in props)
+            {
+                var xValue = string.Empty;
+                var yValue = string.Empty;
+
+                var prop = propertyDelegate(type, property.Name);
+                xValue = prop?.GetValue(x, null)?.ToString();
+                yValue = prop?.GetValue(y, null)?.ToString();
+
+                // this will check if any properties are class (i.e objects)
+                if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+                {
+                    var xChildValues = prop?.GetValue(x, null);
+                    var yChildValues = prop?.GetValue(y, null);
+
+                    //recursive call
+                    diffs.AddRange(xChildValues.CompareUsingDelegateSH(yChildValues));
+                }
+
+                if (ignore == null || !ignore.Contains(property.Name))
+                {
+                    if (xValue != yValue)
+                    {
+                        diffs.Add($"{type.Name} difference - '{property.Name} : {xValue}' != {property.Name} :'{yValue}'");
+                    }
+                }
+
+            }
+            return diffs;
+        }
+
+        /// <summary>
+        /// This is an iteration of method CompareUsingDelegateSH, fixing the handling of ignore list
+        /// </summary>
+        /// <param name="x">first object to compare</param>
+        /// <param name="y">second object to compare</param>
+        /// <param name="ignore">the properties to ignore</param>
+        /// <returns>a list of strings </returns>
+        public static List<string> CompareUsingDelegateSH1(this object x, object y, List<string> ignore = null)
+        {
+            var diffs = new List<string>();
+            var type = x.GetType();
+            var propertyDelegate = new RequestPropertyDelegate(GetProperty);
+            var propertyInfoDelegate = new RequestPropertyInfoDelegate(GetProperties);
+            var props = propertyInfoDelegate(type);
+
+
+            foreach (var property in props)
+            {
+                var xValue = string.Empty;
+                var yValue = string.Empty;
+
+                var prop = propertyDelegate(type, property.Name);
+                xValue = prop?.GetValue(x, null)?.ToString();
+                yValue = prop?.GetValue(y, null)?.ToString();
+
+                var isEnumerable = property.PropertyType != typeof(string) &&
+                                   typeof(IEnumerable).IsAssignableFrom(property.PropertyType);
+
+                if (ignore == null || !ignore.Contains(property.Name))
+                {
+                    // this will check if any properties are class (i.e objects)
+                    if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+                    {
+                        var xChildValues = prop?.GetValue(x, null);
+                        var yChildValues = prop?.GetValue(y, null);
+
+                        //recursive call
+                        diffs.AddRange(xChildValues.CompareUsingDelegateSH(yChildValues));
+                    }
+
+                    if (xValue != yValue)
+                    {
+                        diffs.Add($"{type.Name} difference - '{property.Name} : {xValue}' != {property.Name} :'{yValue}'");
+                    }
+                }
+
+            }
+            return diffs;
+        }
+
         public static List<string> CompareUsingDelegate1<T>(this T x, T y, List<string> ignore = null)
         {
             var diffs = new List<string>();
@@ -110,24 +208,28 @@ namespace ReflectionDelegate
                     // this will check if any properties are class (i.e objects)
                     if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
                     {
+                        switch (xValue)
+                        {
+                            case "ReflectionDelegate.TestSubClass":
+                                var xTestSubClassValues = (TestSubClass) prop?.GetValue(x, null);
+                                var yTestSubClassValues = (TestSubClass) prop?.GetValue(y, null);
+                                //recursive call
+                                diffs.AddRange(xTestSubClassValues.CompareUsingDelegate1(yTestSubClassValues));
+                                break;
 
-                    var xChildValues = (TestSubClass)prop?.GetValue(x, null);
-                    var yChildValues = (TestSubClass)prop?.GetValue(y, null);
+                            case "ReflectionDelegate.AnotherSubClass":
+                                var xAnotherSubClassValues = (AnotherSubClass) prop?.GetValue(x, null);
+                                var yAnotherSubClassValues = (AnotherSubClass) prop?.GetValue(y, null);
+                                //recursive call
+                                diffs.AddRange(xAnotherSubClassValues.CompareUsingDelegate1(yAnotherSubClassValues));
+                                break;
 
-                    //recursive call
-                    diffs.AddRange(xChildValues.CompareUsingDelegate1(yChildValues));
-
-                    //var childType = property.PropertyType;
-
-                    //var xChildValues = prop?.GetValue(x, null);
-                    //var yChildValues = prop?.GetValue(y, null);
-
-                    //var xChildObject = Convert.ChangeType(xChildValues, childType);
-                    //var yChildObject = Convert.ChangeType(yChildValues, childType);
-                    //diffs.AddRange(xChildObject.CompareUsingDelegate1(yChildObject));
-
-                    //var d = xChildValues.CompareUsingDelegate1(yChildValues);
-
+                            default:
+                                diffs.Add("No Configuration defined for sub class");
+                                break;
+                        
+                    }
+                    
                 }
 
                     if (ignore == null || !ignore.Contains(property.Name))
@@ -144,7 +246,7 @@ namespace ReflectionDelegate
 
         }
 
-       public static PropertyInfo[] GetProperties(Type type)
+        public static PropertyInfo[] GetProperties(Type type)
         {
             return type.GetProperties();
         }
