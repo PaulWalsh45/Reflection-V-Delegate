@@ -171,7 +171,7 @@ namespace ReflectionDelegate
                         var yChildValues = prop?.GetValue(y, null);
 
                         //recursive call
-                        diffs.AddRange(xChildValues.CompareUsingDelegateSH(yChildValues));
+                        diffs.AddRange(xChildValues.CompareUsingDelegateSH1(yChildValues));
                     }
 
                     if (xValue != yValue)

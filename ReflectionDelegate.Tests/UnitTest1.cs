@@ -280,9 +280,86 @@ namespace ReflectionDelegate.Tests
             // iterate through the ignored properties above and call the compare for each
             for (int i = 0; i < object1.SubClassList.Count; i++)
             {
-                differences.AddRange(object1.SubClassList[1].CompareUsingDelegateSH1(object2.SubClassList[i]));
+                differences.AddRange(object1.SubClassList[i].CompareUsingDelegateSH1(object2.SubClassList[i]));
             }
             
+            //Assert
+            Assert.AreEqual(7, differences.Count);
+
+        }
+
+        [Test]
+        public void TestUsingCompare_PropertiesContainNestedListedObjects()
+        {
+            //Arrange
+            var object1 = new TestClass4()
+            {
+                TestClass4Name = "Joe",
+                TestClass4Subs = new List<TestClass4Sub>
+                {
+                    new TestClass4Sub
+                    {
+                        TestClass4SubName = "Mick",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Billy"
+                            }
+                        }
+                    },
+                    new TestClass4Sub
+                    {
+                        TestClass4SubName = "Paddy",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Tom"
+                            }
+                        }
+                    }
+                }
+
+            };
+
+            var object2 = new TestClass4()
+            {
+                TestClass4Name = "Sarah",
+                TestClass4Subs = new List<TestClass4Sub>
+                {
+                    new TestClass4Sub
+                    {
+                        TestClass4SubName = "Ann",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Patricia"
+                            }
+                        }
+                    },
+                    new TestClass4Sub
+                    {
+                        TestClass4SubName = "Michele",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Lorraine"
+                            }
+                        }
+                    }
+                }
+
+            };
+
+            //Act
+            //get object differences ignoring known properties of type List
+            var differences = object1.CompareUsingDelegateSH1(object2);
+
+            
+
             //Assert
             Assert.AreEqual(7, differences.Count);
 
