@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using NUnit.Framework;
@@ -299,6 +300,7 @@ namespace ReflectionDelegate.Tests
                 {
                     new TestClass4Sub
                     {
+                        Id = Guid.NewGuid(),
                         TestClass4SubName = "Mick",
                         TestClass4NestedSubs = new List<TestClass4NestedSub>
                         {
@@ -310,6 +312,7 @@ namespace ReflectionDelegate.Tests
                     },
                     new TestClass4Sub
                     {
+                        Id = Guid.NewGuid(),
                         TestClass4SubName = "Paddy",
                         TestClass4NestedSubs = new List<TestClass4NestedSub>
                         {
@@ -330,6 +333,7 @@ namespace ReflectionDelegate.Tests
                 {
                     new TestClass4Sub
                     {
+                        Id = Guid.NewGuid(),
                         TestClass4SubName = "Ann",
                         TestClass4NestedSubs = new List<TestClass4NestedSub>
                         {
@@ -341,6 +345,7 @@ namespace ReflectionDelegate.Tests
                     },
                     new TestClass4Sub
                     {
+                        Id = Guid.NewGuid(),
                         TestClass4SubName = "Michele",
                         TestClass4NestedSubs = new List<TestClass4NestedSub>
                         {
@@ -355,13 +360,199 @@ namespace ReflectionDelegate.Tests
             };
 
             //Act
-            //get object differences ignoring known properties of type List
-            var differences = object1.CompareUsingDelegateSH1(object2);
+            var differences = object1.CompareUsingDelegateSH2(object2);
 
             
 
             //Assert
-            Assert.AreEqual(7, differences.Count);
+            Assert.AreEqual(5, differences.Count);
+
+        }
+
+        [Test]
+        public void TestUsingCompare_SubClassListCountsDiffer()
+        {
+            //Arrange
+            var expectedDiffs = new List<string>
+            {
+                "TestClass4 difference - 'TestClass4Name : Joe' != TestClass4Name :'Sarah'",
+                "TestClass4Sub difference - 'TestClass4SubName : Mick' != TestClass4SubName :'Ann'",
+                "TestClass4Sub difference - 'TestClass4NestedSubs counts : 2 != 1",
+                "TestClass4Sub difference - 'TestClass4SubName : Paddy' != TestClass4SubName :'Michele'",
+                "TestClass4Sub difference - 'TestClass4NestedSubs counts : 1 != 0",
+            };
+
+            var object1 = new TestClass4()
+            {
+                TestClass4Name = "Joe",
+                TestClass4Subs = new List<TestClass4Sub>
+                {
+                    new TestClass4Sub
+                    {
+                        Id = Guid.NewGuid(),
+                        TestClass4SubName = "Mick",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Billy"
+                            },
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Barney"
+                            }
+                        }
+                    },
+                    new TestClass4Sub
+                    {
+                        Id = Guid.NewGuid(),
+                        TestClass4SubName = "Paddy",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Tom"
+                            }
+                        }
+                    }
+                }
+
+            };
+
+            var object2 = new TestClass4()
+            {
+                TestClass4Name = "Sarah",
+                TestClass4Subs = new List<TestClass4Sub>
+                {
+                    new TestClass4Sub
+                    {
+                        Id = Guid.NewGuid(),
+                        TestClass4SubName = "Ann",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Patricia"
+                            }
+                        }
+                    },
+                    new TestClass4Sub
+                    {
+                        Id = Guid.NewGuid(),
+                        TestClass4SubName = "Michele",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>()
+                    }
+                }
+
+            };
+
+            //Act
+            var differences = object1.CompareUsingDelegateSH2(object2);
+            
+            //Assert
+            Assert.AreEqual(5, differences.Count);
+            Assert.AreEqual(expectedDiffs[0], differences[0]);
+            Assert.AreEqual(expectedDiffs[1], differences[1]);
+            Assert.AreEqual(expectedDiffs[2], differences[2]);
+            Assert.AreEqual(expectedDiffs[3], differences[3]);
+            Assert.AreEqual(expectedDiffs[4], differences[4]);
+
+        }
+
+        [Test]
+        public void TestUsingCompare_SubClassListContainNulls()
+        {
+            //Arrange
+            var object1 = new TestClass4()
+            {
+                TestClass4Name = "Joe",
+                TestClass4Subs = new List<TestClass4Sub>
+                {
+                    new TestClass4Sub
+                    {
+                        Id = Guid.NewGuid(),
+                        TestClass4SubName = "Mick",
+                    },
+                    new TestClass4Sub
+                    {
+                        Id = Guid.NewGuid(),
+                        TestClass4SubName = "Paddy",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Tom"
+                            }
+                        }
+                    }
+                }
+
+            };
+
+            var object2 = new TestClass4()
+            {
+                TestClass4Name = "Sarah",
+                TestClass4Subs = new List<TestClass4Sub>
+                {
+                    new TestClass4Sub
+                    {
+                        Id = Guid.NewGuid(),
+                        TestClass4SubName = "Ann",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>
+                        {
+                            new TestClass4NestedSub
+                            {
+                                TestClass4NestedSubName = "Patricia"
+                            }
+                        }
+                    },
+                    new TestClass4Sub
+                    {
+                        Id = Guid.NewGuid(),
+                        TestClass4SubName = "Michele",
+                        TestClass4NestedSubs = new List<TestClass4NestedSub>()
+                    }
+                }
+
+            };
+
+            //Act
+            var differences = object1.CompareUsingDelegateSH2(object2);
+
+            //Assert
+            Assert.AreEqual(4, differences.Count);
+            
+
+        }
+
+        [Test]
+        public void TestUsingCompare_ObjectPropertyDefinitionsDiffer()
+        {
+            //Arrange
+            var object1 = new TestClass1()
+            {
+                FirstName = "Joe",
+                LastName = "Bloggs",
+                Age = 50
+                
+
+            };
+
+            var object2 = new TestClass5()
+            {
+                FirstName = "Mick",
+                LastName = "Dolenz",
+                Age = 20
+
+
+            };
+
+            //Act
+            var differences = object1.CompareUsingDelegateSH2(object2);
+
+            //Assert
+            Assert.AreEqual(1, differences.Count);
+            Assert.AreEqual("Object does not match target type.",differences[0]);
 
         }
 
